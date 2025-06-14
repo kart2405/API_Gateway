@@ -4,45 +4,59 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
 
+// Mapping server links for dynamic routing
+var serviceRoutes = map[string]string{
+	"service1": "http://localhost:8001",
+	"service2": "http://localhost:8002",
+	"service3": "http://localhost:8003",
+}
+
 func ReverseProxyHandler(c *gin.Context) {
-	// Define your backend URL (for testing you can hardcode one backend for now)
-	backendURL := "http://localhost:8001" + c.Request.RequestURI[len("/proxy"):]
-	// fmt.Println(backendURL)
-	// Create HTTP client
-	client := &http.Client{}
+	serviceName := c.Param("service")
+	proxyPath := c.Param("proxyPath")
 
-	// Create new request → same method, same body
-	req, err := http.NewRequest(c.Request.Method, backendURL, c.Request.Body)
-	// This makes a new request:
-
-	// c.Request.Method → same method as original request → GET, POST, PUT...
-	// backendURL → the URL we just built.
-	// c.Request.Body → same request body → so if client sends POST data → we send it to the backend.
-	if err != nil {
-		fmt.Println(err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	backendBaseURL, ok := serviceRoutes[serviceName]
+	if !ok {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Service not found"})
 		return
 	}
 
-	// Copy original headers
-	req.Header = c.Request.Header
+	fullBackendURL := backendBaseURL + proxyPath
+	fmt.Println("Forwarding to:", fullBackendURL)
 
-	// Send request to backend
+	// Create the new request
+	req, err := http.NewRequest(c.Request.Method, fullBackendURL, c.Request.Body)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Request creation failed"})
+		return
+	}
+
+	// Copy headers
+	for k, v := range c.Request.Header {
+		req.Header[k] = v
+	}
+
+	// Forward the request
+	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		fmt.Println(err)
-		c.JSON(http.StatusBadGateway, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadGateway, gin.H{"error": "Backend unreachable"})
 		return
 	}
 	defer resp.Body.Close()
 
-	// Read backend response
+	// Copy response status and body
+	c.Status(resp.StatusCode)
+	for k, v := range resp.Header {
+		c.Header(k, strings.Join(v, ","))
+	}
 	body, _ := io.ReadAll(resp.Body)
+	c.Writer.Write(body)
 
-	// Send backend response back to client
-	c.Data(resp.StatusCode, resp.Header.Get("Content-Type"), body)
+	fmt.Println("Backend responded with:", resp.StatusCode)
 }
