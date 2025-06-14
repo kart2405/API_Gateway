@@ -12,7 +12,7 @@ A robust, production-ready API Gateway built with Go that provides reverse proxy
 - **Docker Support**: Containerized deployment with Docker Compose
 - **Database Integration**: PostgreSQL for route metadata storage
 
-## 🛠 Tech Stack
+## 🛠 Tech Stack~
 
 - **Backend**: Go (Gin Framework)
 - **Database**: PostgreSQL
