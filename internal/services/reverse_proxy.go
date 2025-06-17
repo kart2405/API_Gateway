@@ -7,56 +7,57 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/kart2405/API_Gateway/internal/config"
 )
 
-// Mapping server links for dynamic routing
-var serviceRoutes = map[string]string{
-	"service1": "http://localhost:8001",
-	"service2": "http://localhost:8002",
-	"service3": "http://localhost:8003",
-}
-
 func ReverseProxyHandler(c *gin.Context) {
-	serviceName := c.Param("service")
-	proxyPath := c.Param("proxyPath")
+	serviceName := c.Param("service") // e.g., service1
+	proxyPath := c.Param("proxyPath") // e.g., /users/123
+	routeKey := serviceName           // matches key in config.yaml like service1
 
-	backendBaseURL, ok := serviceRoutes[serviceName]
+	// Lookup route in config.RouteMap
+	backendBaseURL, ok := config.RouteMap[routeKey]
 	if !ok {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Service not found"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "Service not found in config"})
 		return
 	}
 
+	// Construct full URL to forward to
 	fullBackendURL := backendBaseURL + proxyPath
 	fmt.Println("Forwarding to:", fullBackendURL)
 
-	// Create the new request
+	// Create the proxy request
 	req, err := http.NewRequest(c.Request.Method, fullBackendURL, c.Request.Body)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Request creation failed"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create request"})
 		return
 	}
 
-	// Copy headers
+	// Copy headers from original request
 	for k, v := range c.Request.Header {
 		req.Header[k] = v
 	}
 
-	// Forward the request
+	// Send request to backend
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		c.JSON(http.StatusBadGateway, gin.H{"error": "Backend unreachable"})
+		c.JSON(http.StatusBadGateway, gin.H{"error": "Failed to reach backend"})
 		return
 	}
 	defer resp.Body.Close()
 
-	// Copy response status and body
+	// Copy status, headers, and body back to client
 	c.Status(resp.StatusCode)
 	for k, v := range resp.Header {
 		c.Header(k, strings.Join(v, ","))
 	}
-	body, _ := io.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to read backend response"})
+		return
+	}
 	c.Writer.Write(body)
 
-	fmt.Println("Backend responded with:", resp.StatusCode)
+	fmt.Println("Responded with status:", resp.StatusCode)
 }

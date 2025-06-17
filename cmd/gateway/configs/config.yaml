@@ -1,0 +1,4 @@
+routes:
+  service1: "http://localhost:8001"
+  service2: "http://localhost:8002"
+  
