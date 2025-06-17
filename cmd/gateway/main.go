@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/kart2405/API_Gateway/internal/config"
+	"github.com/kart2405/API_Gateway/internal/middleware/auth"
 	"github.com/kart2405/API_Gateway/internal/services"
 )
 
@@ -17,8 +18,36 @@ func main() {
 	// Create Gin router
 	r := gin.Default()
 
-	// Reverse Proxy route (uses dynamically loaded config.RouteMap)
-	r.Any("/proxy/:service/*proxyPath", services.ReverseProxyHandler)
+	// Public routes
+	r.POST("/login", func(c *gin.Context) {
+		var login struct {
+			Username string `json:"username" binding:"required"`
+			Password string `json:"password" binding:"required"`
+		}
+
+		if err := c.ShouldBindJSON(&login); err != nil {
+			c.JSON(400, gin.H{"error": "Invalid request"})
+			return
+		}
+
+		// In a real application, validate credentials against a database
+		// For demo purposes, we'll accept any username/password
+		token, err := auth.GenerateToken("123", login.Username)
+		if err != nil {
+			c.JSON(500, gin.H{"error": "Failed to generate token"})
+			return
+		}
+
+		c.JSON(200, gin.H{"token": token})
+	})
+
+	// Protected routes
+	protected := r.Group("/")
+	protected.Use(auth.JWTAuthMiddleware())
+	{
+		// Reverse Proxy route (uses dynamically loaded config.RouteMap)
+		protected.Any("/proxy/:service/*proxyPath", services.ReverseProxyHandler)
+	}
 
 	// Start the gateway server on port 8080
 	if err := r.Run(":8080"); err != nil {
