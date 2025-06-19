@@ -8,6 +8,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 )
 
 var jwtSecret = []byte("your-secret-key") // In production, use environment variable
@@ -16,6 +17,11 @@ type Claims struct {
 	UserID   string `json:"user_id"`
 	Username string `json:"username"`
 	jwt.RegisteredClaims
+}
+
+// GenerateUserID creates a new unique user ID
+func GenerateUserID() string {
+	return uuid.New().String()
 }
 
 // JWTAuthMiddleware creates a middleware for JWT authentication

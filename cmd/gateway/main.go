@@ -45,13 +45,18 @@ func main() {
 
 		// In a real application, validate credentials against a database
 		// For demo purposes, we'll accept any username/password
-		token, err := auth.GenerateToken("123", login.Username)
+		userID := auth.GenerateUserID() // Generate unique user ID
+		token, err := auth.GenerateToken(userID, login.Username)
 		if err != nil {
 			c.JSON(500, gin.H{"error": "Failed to generate token"})
 			return
 		}
 
-		c.JSON(200, gin.H{"token": token})
+		c.JSON(200, gin.H{
+			"token":    token,
+			"userID":   userID,
+			"username": login.Username,
+		})
 	})
 
 	// Protected routes with rate limiting
