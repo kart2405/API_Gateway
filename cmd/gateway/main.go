@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/kart2405/API_Gateway/internal/config"
 	"github.com/kart2405/API_Gateway/internal/middleware/auth"
+	"github.com/kart2405/API_Gateway/internal/middleware/ratelimit"
 	"github.com/kart2405/API_Gateway/internal/services"
 )
 
@@ -13,6 +14,18 @@ func main() {
 	// Load route map from YAML config
 	if err := config.LoadConfig(); err != nil {
 		log.Fatalf("Failed to load config: %v", err)
+	}
+
+	// Initialize Redis
+	config.InitRedis()
+
+	// Test Redis connection
+	_, err := config.RedisClient.Ping(config.Ctx).Result()
+	if err != nil {
+		log.Printf("Warning: Redis connection failed: %v", err)
+		log.Println("Rate limiting will not work without Redis")
+	} else {
+		log.Println("Redis connected successfully")
 	}
 
 	// Create Gin router
@@ -41,9 +54,10 @@ func main() {
 		c.JSON(200, gin.H{"token": token})
 	})
 
-	// Protected routes
+	// Protected routes with rate limiting
 	protected := r.Group("/")
 	protected.Use(auth.JWTAuthMiddleware())
+	protected.Use(ratelimit.RateLimitMiddleware())
 	{
 		// Reverse Proxy route (uses dynamically loaded config.RouteMap)
 		protected.Any("/proxy/:service/*proxyPath", services.ReverseProxyHandler)
