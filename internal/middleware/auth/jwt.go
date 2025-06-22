@@ -76,9 +76,9 @@ func JWTAuthMiddleware() gin.HandlerFunc {
 }
 
 // GenerateToken generates a new JWT token
-func GenerateToken(userID, username string) (string, error) {
+func GenerateToken(userID uint, username string) (string, error) {
 	claims := &Claims{
-		UserID:   userID,
+		UserID:   fmt.Sprintf("%d", userID),
 		Username: username,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour)),

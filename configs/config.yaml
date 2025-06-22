@@ -1,3 +1,10 @@
 routes:
   service1: http://localhost:8001
   service2: http://localhost:8002
+
+postgres:
+  host: localhost
+  port: 5432
+  user: postgres
+  password: 2405
+  dbname: apigateway
