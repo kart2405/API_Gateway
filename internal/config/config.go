@@ -44,7 +44,7 @@ func InitDatabase() {
 		port = "5432"
 	}
 	if user == "" {
-		user = "karthik"
+		user = "postgres"
 	}
 	if password == "" {
 		password = "2405"

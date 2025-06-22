@@ -48,37 +48,19 @@ func main() {
 		}
 
 		var user models.User
-		// Check if user exists
-		err := config.DB.Where("username = ?", login.Username).First(&user).Error
-
-		if err != nil {
-			// User doesn't exist, create new user
-			hashedPassword, hashErr := bcrypt.GenerateFromPassword([]byte(login.Password), bcrypt.DefaultCost)
-			if hashErr != nil {
-				c.JSON(500, gin.H{"error": "Failed to hash password"})
-				return
-			}
-
-			user = models.User{
-				Username: login.Username,
-				Password: string(hashedPassword),
-			}
-
-			if createErr := config.DB.Create(&user).Error; createErr != nil {
-				c.JSON(500, gin.H{"error": "Failed to create user"})
-				return
-			}
-
-			log.Printf("New user created: %s with ID: %d", login.Username, user.ID)
-		} else {
-			// User exists, verify password
-			if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(login.Password)); err != nil {
-				c.JSON(401, gin.H{"error": "Invalid password"})
-				return
-			}
+		// Look up user by username
+		if err := config.DB.Where("username = ?", login.Username).First(&user).Error; err != nil {
+			c.JSON(401, gin.H{"error": "Invalid username or password"})
+			return
 		}
 
-		// Generate token using user ID
+		// Compare password hash
+		if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(login.Password)); err != nil {
+			c.JSON(401, gin.H{"error": "Invalid username or password"})
+			return
+		}
+
+		// Generate token using real user ID
 		token, err := auth.GenerateToken(user.ID, user.Username)
 		if err != nil {
 			c.JSON(500, gin.H{"error": "Failed to generate token"})
@@ -89,32 +71,6 @@ func main() {
 			"token":    token,
 			"userID":   user.ID,
 			"username": user.Username,
-			"message":  "Login successful",
-		})
-	})
-
-	// GET endpoint to view all users
-	r.GET("/users", func(c *gin.Context) {
-		var users []models.User
-
-		if err := config.DB.Find(&users).Error; err != nil {
-			c.JSON(500, gin.H{"error": "Failed to retrieve users"})
-			return
-		}
-
-		// Don't return password hashes for security
-		var userList []gin.H
-		for _, user := range users {
-			userList = append(userList, gin.H{
-				"id":        user.ID,
-				"username":  user.Username,
-				"createdAt": user.CreatedAt,
-			})
-		}
-
-		c.JSON(200, gin.H{
-			"users": userList,
-			"count": len(userList),
 		})
 	})
 
