@@ -15,7 +15,7 @@ import (
 func main() {
 	// Load route map from YAML config
 	config.InitDatabase()
-	config.DB.AutoMigrate(&models.User{})
+	config.DB.AutoMigrate(&models.User{}, &services.RouteConfig{})
 	if err := config.LoadConfig(); err != nil {
 		log.Fatalf("Failed to load config: %v", err)
 	}
@@ -30,6 +30,13 @@ func main() {
 		log.Println("Rate limiting will not work without Redis")
 	} else {
 		log.Println("Redis connected successfully")
+	}
+
+	// Initialize route optimizer
+	if err := services.InitializeRouteOptimizer(); err != nil {
+		log.Printf("Warning: Failed to initialize route optimizer: %v", err)
+	} else {
+		log.Println("Route optimizer initialized successfully")
 	}
 
 	// Create Gin router
@@ -74,12 +81,39 @@ func main() {
 		})
 	})
 
+	// Admin routes (protected by JWT)
+	admin := r.Group("/admin")
+	admin.Use(auth.JWTAuthMiddleware())
+	{
+		admin.GET("/routes", services.AdminGetRoutes)
+		admin.POST("/routes", services.AdminCreateRoute)
+		admin.PUT("/routes/:id", services.AdminUpdateRoute)
+		admin.DELETE("/routes/:id", services.AdminDeleteRoute)
+		admin.GET("/routes/stats", services.AdminGetRouteStats)
+		admin.GET("/routes/optimizer/stats", func(c *gin.Context) {
+			stats := services.GlobalRouteOptimizer.GetRouteStats()
+			c.JSON(200, stats)
+		})
+		admin.POST("/routes/optimizer/benchmark", func(c *gin.Context) {
+			var request struct {
+				ServiceNames []string `json:"service_names"`
+			}
+			if err := c.ShouldBindJSON(&request); err != nil {
+				c.JSON(400, gin.H{"error": "Invalid request"})
+				return
+			}
+
+			benchmark := services.GlobalRouteOptimizer.BenchmarkRouteLookup(request.ServiceNames)
+			c.JSON(200, benchmark)
+		})
+	}
+
 	// Protected routes with rate limiting
 	protected := r.Group("/")
 	protected.Use(auth.JWTAuthMiddleware())
 	protected.Use(ratelimit.RateLimitMiddleware())
 	{
-		// Reverse Proxy route (uses dynamically loaded config.RouteMap)
+		// Reverse Proxy route (uses optimized route lookup)
 		protected.Any("/proxy/:service/*proxyPath", services.ReverseProxyHandler)
 	}
 

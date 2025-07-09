@@ -8,12 +8,13 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/kart2405/API_Gateway/internal/config"
+	"github.com/kart2405/API_Gateway/internal/services"
 	"github.com/redis/go-redis/v9"
 )
 
 const (
-	MAX_REQUESTS = 10
-	WINDOW       = 60 * time.Second
+	DEFAULT_MAX_REQUESTS = 10
+	DEFAULT_WINDOW       = 60 * time.Second
 )
 
 func RateLimitMiddleware() gin.HandlerFunc {
@@ -30,7 +31,28 @@ func RateLimitMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		key := fmt.Sprintf("ratelimit:%s", userID)
+		// Get service name from path to determine rate limit
+		serviceName := c.Param("service")
+		var maxRequests int
+		var window time.Duration
+
+		if serviceName != "" {
+			// Try to get route-specific rate limit
+			if route, exists := services.GlobalRouteOptimizer.FindRouteOptimized(serviceName); exists {
+				maxRequests = route.RateLimit
+				window = time.Duration(route.RateLimitWindow) * time.Second
+			}
+		}
+
+		// Use defaults if no route-specific config found
+		if maxRequests == 0 {
+			maxRequests = DEFAULT_MAX_REQUESTS
+		}
+		if window == 0 {
+			window = DEFAULT_WINDOW
+		}
+
+		key := fmt.Sprintf("ratelimit:%s:%s", userID, serviceName)
 
 		script := redis.NewScript(`
 			local tokens = redis.call("GET", KEYS[1])
@@ -45,7 +67,7 @@ func RateLimitMiddleware() gin.HandlerFunc {
 			end
 		`)
 
-		result, err := script.Run(config.Ctx, config.RedisClient, []string{key}, MAX_REQUESTS, int(WINDOW.Seconds())).Result()
+		result, err := script.Run(config.Ctx, config.RedisClient, []string{key}, maxRequests, int(window.Seconds())).Result()
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Redis error"})
 			return

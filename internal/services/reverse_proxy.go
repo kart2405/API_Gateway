@@ -7,20 +7,21 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/kart2405/API_Gateway/internal/config"
 )
 
 func ReverseProxyHandler(c *gin.Context) {
 	serviceName := c.Param("service") // e.g., service1
 	proxyPath := c.Param("proxyPath") // e.g., /users/123
-	routeKey := serviceName           // matches key in config.yaml like service1
 
-	// Lookup route in config.RouteMap
-	backendBaseURL, ok := config.RouteMap[routeKey]
-	if !ok {
+	// Use optimized route lookup instead of simple map lookup
+	route, exists := GlobalRouteOptimizer.FindRouteOptimized(serviceName)
+	if !exists {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Service not found in config"})
 		return
 	}
+
+	// Use the route configuration for backend URL
+	backendBaseURL := route.BackendURL
 
 	// Construct full URL to forward to
 	fullBackendURL := backendBaseURL + proxyPath
