@@ -180,6 +180,9 @@ func (ro *RouteOptimizer) BenchmarkRouteLookup(serviceNames []string) map[string
 	if hashMapTime > 0 {
 		improvement := ((float64(hashMapTime) - float64(optimizedTime)) / float64(hashMapTime)) * 100
 		results["improvement_percentage"] = improvement
+	} else {
+		// If hashMapTime is 0, set improvement to 0
+		results["improvement_percentage"] = 0
 	}
 
 	return results
