@@ -393,7 +393,7 @@ The following environment variables can be set:
   - [x] One-command setup scripts
   - [x] Professional Git workflow with 12 logical commits
 
-### 🚀 Upcoming Features (Q1 2025)
+### 🚀 Upcoming Features
 
 - [ ] **Advanced Security**
   - [ ] OAuth2/OpenID Connect integration
@@ -413,7 +413,7 @@ The following environment variables can be set:
   - [ ] Distributed tracing with OpenTelemetry
   - [ ] Real-time alerting system
 
-### 🔮 Future Enhancements (Q2-Q4 2025)
+### 🔮 Future Enhancements
 
 - [ ] **Protocol Support**
   - [ ] WebSocket proxy support
@@ -474,10 +474,6 @@ Contributions are welcome! Please feel free to submit a Pull Request. For major 
 3. Commit your changes (`git commit -m 'Add some amazing feature'`)
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
 
