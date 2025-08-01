@@ -1,6 +1,7 @@
 routes:
-  service1: http://localhost:8001
-  service2: http://localhost:8002
+  user-service: http://localhost:8001
+  order-service: http://localhost:8002
+  test-service: http://localhost:8001
 
 postgres:
   host: localhost
