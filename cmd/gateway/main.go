@@ -42,6 +42,19 @@ func main() {
 	// Create Gin router
 	r := gin.Default()
 
+	// Health check endpoint
+	r.GET("/health", func(c *gin.Context) {
+		c.JSON(200, gin.H{"status": "healthy"})
+	})
+
+	// Debug endpoint to check config
+	r.GET("/debug/config", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"route_map":       config.RouteMap,
+			"optimizer_stats": services.GlobalRouteOptimizer.GetRouteStats(),
+		})
+	})
+
 	// Public routes
 	r.POST("/login", func(c *gin.Context) {
 		var login struct {
