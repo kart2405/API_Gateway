@@ -1,7 +1,7 @@
 # Build stage
 FROM golang:1.24.2-alpine AS builder
 
-# Install git and ca-certificates (needed for go mod download)
+# Install git and ca-certificates
 RUN apk add --no-cache git ca-certificates
 
 # Set working directory
@@ -17,12 +17,12 @@ RUN go mod download
 COPY . .
 
 # Build the application
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o api_gateway cmd/gateway/main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o backend1 .
 
 # Final stage
 FROM alpine:latest
 
-# Install ca-certificates for HTTPS requests
+# Install ca-certificates
 RUN apk --no-cache add ca-certificates
 
 # Create non-root user
@@ -33,10 +33,7 @@ RUN addgroup -g 1001 -S appgroup && \
 WORKDIR /app
 
 # Copy binary from builder stage
-COPY --from=builder /app/api_gateway .
-
-# Copy configuration files
-COPY --from=builder /app/configs ./configs
+COPY --from=builder /app/backend1 .
 
 # Change ownership to non-root user
 RUN chown -R appuser:appgroup /app
@@ -45,11 +42,11 @@ RUN chown -R appuser:appgroup /app
 USER appuser
 
 # Expose port
-EXPOSE 8080
+EXPOSE 8001
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost:8080/health || exit 1
+    CMD wget --no-verbose --tries=1 --spider http://localhost:8001/test || exit 1
 
 # Run the application
-CMD ["./api_gateway"]
+CMD ["./backend1"] 

@@ -1,12 +1,87 @@
-version: '3'
+version: '3.8'
+
 services:
   gateway:
-    build: .
+    build: 
+      context: ..
+      dockerfile: docker/Dockerfile
     ports:
       - "8080:8080"
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=2405
+      - DB_NAME=apigateway
+      - REDIS_ADDR=redis:6379
     depends_on:
-      - redis
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - api-network
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:14-alpine
+    environment:
+      POSTGRES_DB: apigateway
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 2405
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - api-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
   redis:
-    image: redis:7
+    image: redis:7-alpine
     ports:
       - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - api-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # Example backend services
+  backend1:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    ports:
+      - "8001:8001"
+    networks:
+      - api-network
+    restart: unless-stopped
+
+  backend2:
+    build:
+      context: ../backend2
+      dockerfile: Dockerfile
+    ports:
+      - "8002:8002"
+    networks:
+      - api-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  api-network:
+    driver: bridge
