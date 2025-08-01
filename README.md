@@ -16,20 +16,22 @@ A robust, production-ready API Gateway built with Go that provides reverse proxy
 
 ## 🛠 Tech Stack
 
-- **Backend**: Go (Gin Framework)
+- **Backend**: Go 1.24.2 (Gin Framework)
 - **Database**: PostgreSQL with GORM
-- **Caching**: Redis
+- **Caching**: Redis 7.0+
 - **Containerization**: Docker & Docker Compose
 - **Authentication**: JWT (JSON Web Tokens)
 - **Testing**: Go's net/http/httptest
+- **Configuration**: Viper for config management
 
 ## 📁 Project Structure
 
 ```
-.
+API_gateway_with_ratelimiting_and_Jwt_validation/
 ├── cmd/
 │   └── gateway/
-│       └── main.go                 # Main gateway application
+│       ├── main.go                 # Main gateway application entry point
+│       └── api_gateway             # Compiled gateway binary
 ├── internal/
 │   ├── config/
 │   │   ├── config.go              # Configuration management
@@ -40,7 +42,7 @@ A robust, production-ready API Gateway built with Go that provides reverse proxy
 │   │   └── ratelimit/
 │   │       └── ratelimit.go       # Rate limiting middleware
 │   ├── models/
-│   │   └── user.go                # User model
+│   │   └── user.go                # User model definitions
 │   └── services/
 │       ├── admin_api.go           # Admin API endpoints
 │       ├── reverse_proxy.go       # Reverse proxy handler
@@ -48,20 +50,32 @@ A robust, production-ready API Gateway built with Go that provides reverse proxy
 ├── tests/
 │   └── gateway_test.go            # Comprehensive test suite
 ├── docker/
-│   ├── Dockerfile
-│   └── docker-compose.yml
+│   ├── Dockerfile                 # Docker image configuration
+│   └── docker-compose.yml         # Multi-service orchestration
 ├── configs/
-│   └── config.yaml
-├── go.mod
-├── go.sum
-└── README.md
+│   ├── config.yaml               # Application configuration
+│   └── db.go                     # Database connection setup
+├── backend/                      # Example backend service 1
+│   ├── main.go
+│   └── backend1                  # Compiled backend binary
+├── backend2/                     # Example backend service 2
+│   └── main.go
+├── scripts/
+│   ├── dev-setup.sh             # Development environment setup
+│   └── init-db.sh               # Database initialization
+├── go.mod                        # Go module dependencies
+├── go.sum                        # Go module checksums
+├── .air.toml                     # Hot reload configuration
+├── Makefile                      # Build and development commands
+├── .gitignore                    # Git ignore rules
+└── README.md                     # This file
 ```
 
 ## 🚀 Getting Started
 
 ### Prerequisites
 
-- Go 1.21 or higher
+- Go 1.24.2 or higher
 - Docker and Docker Compose
 - Redis 7.0 or higher
 - PostgreSQL 14 or higher
@@ -71,32 +85,54 @@ A robust, production-ready API Gateway built with Go that provides reverse proxy
 1. Clone the repository:
    ```bash
    git clone https://github.com/kart2405/API_Gateway.git
-   cd api-gateway
+   cd API_gateway_with_ratelimiting_and_Jwt_validation
    ```
 
-2. Create a `.env` file:
+2. Start the services:
    ```bash
-   cp .env.example .env
-   ```
-
-3. Start the services:
-   ```bash
+   cd docker
    docker-compose up -d
    ```
 
-4. The API Gateway will be available at `http://localhost:8080`
+3. The API Gateway will be available at `http://localhost:8080`
+
+### Running Locally
+
+1. Set up the development environment:
+   ```bash
+   ./scripts/dev-setup.sh
+   ```
+
+2. Start dependencies (PostgreSQL and Redis):
+   ```bash
+   # Using Docker for dependencies
+   docker run -d --name postgres -e POSTGRES_PASSWORD=2405 -e POSTGRES_DB=apigateway -p 5432:5432 postgres:14
+   docker run -d --name redis -p 6379:6379 redis:7
+   ```
+
+3. Initialize the database:
+   ```bash
+   ./scripts/init-db.sh
+   ```
+
+4. Run the gateway:
+   ```bash
+   make run
+   # or
+   go run cmd/gateway/main.go
+   ```
 
 ### Running Tests
 
 ```bash
 # Run all tests
-go test ./tests/...
+make test
 
-# Run tests with verbose output
-go test -v ./tests/...
+# Run tests with coverage
+make test-coverage
 
 # Run benchmarks
-go test -bench=. ./tests/...
+make benchmark
 
 # Run specific test
 go test -run TestLoginEndpoint ./tests/
@@ -130,6 +166,10 @@ go test -run TestLoginEndpoint ./tests/
    - Dynamic route updates without restart
 
 ## 📝 API Endpoints
+
+For detailed API documentation, see [docs/API.md](docs/API.md).
+
+For deployment instructions, see [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
 
 ### Public Endpoints
 
@@ -255,6 +295,72 @@ Typical performance improvements:
 - **Prefix-Tree**: ~0.3μs per lookup  
 - **Optimized**: ~0.15μs per lookup (with fallback)
 - **Improvement**: ~20% faster than simple map lookup
+
+## 🔧 Development Commands
+
+The project includes a Makefile with common development commands:
+
+```bash
+# Show all available commands
+make help
+
+# Build the gateway binary
+make build
+
+# Run tests
+make test
+
+# Run tests with coverage
+make test-coverage
+
+# Run benchmarks
+make benchmark
+
+# Run the gateway locally
+make run
+
+# Clean build artifacts
+make clean
+
+# Download dependencies
+make deps
+
+# Build Docker image
+make docker-build
+
+# Run with Docker Compose
+make docker-run
+
+# Stop Docker Compose
+make docker-stop
+
+# View Docker logs
+make docker-logs
+
+# Format code
+make fmt
+
+# Lint code
+make lint
+```
+
+## 🔧 Configuration
+
+The application uses Viper for configuration management. Key configuration files:
+
+- `configs/config.yaml`: Main application configuration
+- `configs/db.go`: Database connection settings
+
+### Environment Variables
+
+The following environment variables can be set:
+
+- `DB_HOST`: PostgreSQL host (default: localhost)
+- `DB_PORT`: PostgreSQL port (default: 5432)
+- `DB_USER`: PostgreSQL user (default: postgres)
+- `DB_PASSWORD`: PostgreSQL password (default: 2405)
+- `DB_NAME`: PostgreSQL database name (default: apigateway)
+- `REDIS_ADDR`: Redis address (default: localhost:6379)
 
 ## 🗺 Roadmap
 
