@@ -69,6 +69,12 @@ func AdminCreateRoute(c *gin.Context) {
 	// Update in-memory route map
 	config.RouteMap[route.ServiceName] = route.BackendURL
 
+	// Reload all routes in the optimizer
+	var allRoutes []RouteConfig
+	if err := config.DB.Find(&allRoutes).Error; err == nil {
+		GlobalRouteOptimizer.BuildOptimizedRoutes(allRoutes)
+	}
+
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "Route created successfully",
 		"route":   route,
@@ -119,6 +125,12 @@ func AdminUpdateRoute(c *gin.Context) {
 	// Update in-memory route map
 	config.RouteMap[route.ServiceName] = route.BackendURL
 
+	// Reload all routes in the optimizer
+	var allRoutes []RouteConfig
+	if err := config.DB.Find(&allRoutes).Error; err == nil {
+		GlobalRouteOptimizer.BuildOptimizedRoutes(allRoutes)
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Route updated successfully",
 		"route":   route,
@@ -148,6 +160,12 @@ func AdminDeleteRoute(c *gin.Context) {
 
 	// Remove from in-memory route map
 	delete(config.RouteMap, route.ServiceName)
+
+	// Reload all routes in the optimizer
+	var allRoutes []RouteConfig
+	if err := config.DB.Find(&allRoutes).Error; err == nil {
+		GlobalRouteOptimizer.BuildOptimizedRoutes(allRoutes)
+	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Route deleted successfully",
