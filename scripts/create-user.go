@@ -10,6 +10,11 @@ import (
 )
 
 func main() {
+	// Load configuration
+	if err := config.LoadConfig(); err != nil {
+		log.Fatalf("Failed to load config: %v", err)
+	}
+
 	// Initialize database
 	config.InitDatabase()
 	config.DB.AutoMigrate(&models.User{}, &services.RouteConfig{})
