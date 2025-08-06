@@ -62,4 +62,4 @@ This repository should contribute to GitHub activity tracking for:
 
 ---
 *Last updated: 2025-08-05*
-*Contributor: kart2405-devil (konyalakarthik24@gmail.com)*
+*Contributor: kart2405-devil*
