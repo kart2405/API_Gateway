@@ -3,7 +3,7 @@ package config
 import (
 	"fmt"
 	"log"
-	"os"
+	"time"
 
 	"github.com/spf13/viper"
 	"gorm.io/driver/postgres"
@@ -11,50 +11,165 @@ import (
 	"gorm.io/gorm/logger"
 )
 
-var RouteMap map[string]string
-var DB *gorm.DB
+// Config holds all configuration
+type Config struct {
+	Server   ServerConfig   `mapstructure:"server"`
+	Database DatabaseConfig `mapstructure:"database"`
+	Redis    RedisConfig    `mapstructure:"redis"`
+	Security SecurityConfig `mapstructure:"security"`
+	Logging  LoggingConfig  `mapstructure:"logging"`
+	Routes   map[string]string `mapstructure:"routes"`
+}
 
+// ServerConfig holds server configuration
+type ServerConfig struct {
+	Port         string        `mapstructure:"port"`
+	ReadTimeout  time.Duration `mapstructure:"read_timeout"`
+	WriteTimeout time.Duration `mapstructure:"write_timeout"`
+	IdleTimeout  time.Duration `mapstructure:"idle_timeout"`
+}
+
+// DatabaseConfig holds database configuration
+type DatabaseConfig struct {
+	Host     string `mapstructure:"host"`
+	Port     string `mapstructure:"port"`
+	User     string `mapstructure:"user"`
+	Password string `mapstructure:"password"`
+	DBName   string `mapstructure:"dbname"`
+	SSLMode  string `mapstructure:"sslmode"`
+	MaxConns int    `mapstructure:"max_conns"`
+}
+
+// RedisConfig holds Redis configuration
+type RedisConfig struct {
+	Host     string `mapstructure:"host"`
+	Port     string `mapstructure:"port"`
+	Password string `mapstructure:"password"`
+	DB       int    `mapstructure:"db"`
+	PoolSize int    `mapstructure:"pool_size"`
+}
+
+// SecurityConfig holds security configuration
+type SecurityConfig struct {
+	JWTSecret     string        `mapstructure:"jwt_secret"`
+	JWTExpiration time.Duration `mapstructure:"jwt_expiration"`
+	CORSEnabled   bool          `mapstructure:"cors_enabled"`
+	AllowedOrigins []string     `mapstructure:"allowed_origins"`
+}
+
+// LoggingConfig holds logging configuration
+type LoggingConfig struct {
+	Level      string `mapstructure:"level"`
+	Format     string `mapstructure:"format"`
+	OutputPath string `mapstructure:"output_path"`
+}
+
+var (
+	AppConfig *Config
+	RouteMap  map[string]string
+	DB        *gorm.DB
+)
+
+// LoadConfig loads configuration from file and environment
 func LoadConfig() error {
+	// Set default config file
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath("../../configs")
 	viper.AddConfigPath("./configs")
+	viper.AddConfigPath(".")
 
+	// Set environment variable prefix
+	viper.SetEnvPrefix("API_GATEWAY")
+	viper.AutomaticEnv()
+
+	// Set defaults
+	setDefaults()
+
+	// Read config file
 	if err := viper.ReadInConfig(); err != nil {
-		return fmt.Errorf("error reading config file: %w", err)
+		log.Printf("Warning: Could not read config file: %v", err)
 	}
 
-	routes := viper.GetStringMapString("routes")
-	RouteMap = routes
-	fmt.Printf("Loaded routes: %+v\n", RouteMap)
+	// Unmarshal config
+	AppConfig = &Config{}
+	if err := viper.Unmarshal(AppConfig); err != nil {
+		return fmt.Errorf("error unmarshaling config: %w", err)
+	}
+
+	// Validate config
+	if err := validateConfig(AppConfig); err != nil {
+		return fmt.Errorf("config validation failed: %w", err)
+	}
+
+	// Set global variables
+	RouteMap = AppConfig.Routes
+
+	log.Printf("Configuration loaded successfully")
+	log.Printf("Server will run on port: %s", AppConfig.Server.Port)
+	
 	return nil
 }
 
+// setDefaults sets default configuration values
+func setDefaults() {
+	// Server defaults
+	viper.SetDefault("server.port", "8080")
+	viper.SetDefault("server.read_timeout", "30s")
+	viper.SetDefault("server.write_timeout", "30s")
+	viper.SetDefault("server.idle_timeout", "60s")
+
+	// Database defaults
+	viper.SetDefault("database.host", "localhost")
+	viper.SetDefault("database.port", "5432")
+	viper.SetDefault("database.user", "postgres")
+	viper.SetDefault("database.password", "2405")
+	viper.SetDefault("database.dbname", "apigateway")
+	viper.SetDefault("database.sslmode", "disable")
+	viper.SetDefault("database.max_conns", 10)
+
+	// Redis defaults
+	viper.SetDefault("redis.host", "localhost")
+	viper.SetDefault("redis.port", "6379")
+	viper.SetDefault("redis.password", "")
+	viper.SetDefault("redis.db", 0)
+	viper.SetDefault("redis.pool_size", 10)
+
+	// Security defaults
+	viper.SetDefault("security.jwt_secret", "your-secret-key")
+	viper.SetDefault("security.jwt_expiration", "24h")
+	viper.SetDefault("security.cors_enabled", true)
+	viper.SetDefault("security.allowed_origins", []string{"*"})
+
+	// Logging defaults
+	viper.SetDefault("logging.level", "info")
+	viper.SetDefault("logging.format", "json")
+	viper.SetDefault("logging.output_path", "stdout")
+}
+
+// validateConfig validates the configuration
+func validateConfig(config *Config) error {
+	if config.Server.Port == "" {
+		return fmt.Errorf("server port is required")
+	}
+
+	if config.Database.Host == "" {
+		return fmt.Errorf("database host is required")
+	}
+
+	if config.Security.JWTSecret == "" {
+		return fmt.Errorf("JWT secret is required")
+	}
+
+	return nil
+}
+
+// InitDatabase initializes database connection with connection pooling
 func InitDatabase() {
-	host := os.Getenv("DB_HOST")
-	port := os.Getenv("DB_PORT")
-	user := os.Getenv("DB_USER")
-	password := os.Getenv("DB_PASSWORD")
-	dbname := os.Getenv("DB_NAME")
+	config := AppConfig.Database
 
-	if host == "" {
-		host = "localhost"
-	}
-	if port == "" {
-		port = "5432"
-	}
-	if user == "" {
-		user = "postgres"
-	}
-	if password == "" {
-		password = "2405"
-	}
-	if dbname == "" {
-		dbname = "apigateway"
-	}
-
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Asia/Shanghai",
-		host, user, password, dbname, port)
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=%s TimeZone=Asia/Shanghai",
+		config.Host, config.User, config.Password, config.DBName, config.Port, config.SSLMode)
 
 	var err error
 	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{
@@ -65,5 +180,20 @@ func InitDatabase() {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
 
-	log.Println("Database connected successfully")
+	// Configure connection pool
+	sqlDB, err := DB.DB()
+	if err != nil {
+		log.Fatalf("Failed to get underlying sql.DB: %v", err)
+	}
+
+	sqlDB.SetMaxOpenConns(config.MaxConns)
+	sqlDB.SetMaxIdleConns(config.MaxConns / 2)
+	sqlDB.SetConnMaxLifetime(time.Hour)
+
+	log.Printf("Database connected successfully with %d max connections", config.MaxConns)
+}
+
+// GetConfig returns the application configuration
+func GetConfig() *Config {
+	return AppConfig
 }
