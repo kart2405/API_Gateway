@@ -139,7 +139,7 @@ func TestCacheSystem(t *testing.T) {
 
 	r.GET("/cache-test", func(c *gin.Context) {
 		c.JSON(200, gin.H{
-			"message": "cached response",
+			"message":   "cached response",
 			"timestamp": time.Now().Unix(),
 		})
 	})
@@ -377,4 +377,4 @@ func BenchmarkValidationPerformance(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		validationService.Validate(testData)
 	}
-} 
+}

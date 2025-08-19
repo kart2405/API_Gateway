@@ -13,11 +13,11 @@ import (
 
 // Config holds all configuration
 type Config struct {
-	Server   ServerConfig   `mapstructure:"server"`
-	Database DatabaseConfig `mapstructure:"database"`
-	Redis    RedisConfig    `mapstructure:"redis"`
-	Security SecurityConfig `mapstructure:"security"`
-	Logging  LoggingConfig  `mapstructure:"logging"`
+	Server   ServerConfig      `mapstructure:"server"`
+	Database DatabaseConfig    `mapstructure:"database"`
+	Redis    RedisConfig       `mapstructure:"redis"`
+	Security SecurityConfig    `mapstructure:"security"`
+	Logging  LoggingConfig     `mapstructure:"logging"`
 	Routes   map[string]string `mapstructure:"routes"`
 }
 
@@ -51,10 +51,10 @@ type RedisConfig struct {
 
 // SecurityConfig holds security configuration
 type SecurityConfig struct {
-	JWTSecret     string        `mapstructure:"jwt_secret"`
-	JWTExpiration time.Duration `mapstructure:"jwt_expiration"`
-	CORSEnabled   bool          `mapstructure:"cors_enabled"`
-	AllowedOrigins []string     `mapstructure:"allowed_origins"`
+	JWTSecret      string        `mapstructure:"jwt_secret"`
+	JWTExpiration  time.Duration `mapstructure:"jwt_expiration"`
+	CORSEnabled    bool          `mapstructure:"cors_enabled"`
+	AllowedOrigins []string      `mapstructure:"allowed_origins"`
 }
 
 // LoggingConfig holds logging configuration
@@ -107,7 +107,7 @@ func LoadConfig() error {
 
 	log.Printf("Configuration loaded successfully")
 	log.Printf("Server will run on port: %s", AppConfig.Server.Port)
-	
+
 	return nil
 }
 

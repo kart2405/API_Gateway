@@ -17,8 +17,8 @@ import (
 
 // CacheEntry represents a cache entry
 type CacheEntry struct {
-	Data      interface{} `json:"data"`
-	Timestamp time.Time   `json:"timestamp"`
+	Data      interface{}   `json:"data"`
+	Timestamp time.Time     `json:"timestamp"`
 	TTL       time.Duration `json:"ttl"`
 }
 
@@ -43,17 +43,17 @@ func NewCacheService() *CacheService {
 func (cs *CacheService) generateKey(c *gin.Context) string {
 	// Create a unique key based on method, path, and query parameters
 	key := fmt.Sprintf("%s:%s", c.Request.Method, c.Request.URL.Path)
-	
+
 	// Add query parameters to key
 	if c.Request.URL.RawQuery != "" {
 		key += "?" + c.Request.URL.RawQuery
 	}
-	
+
 	// Add user ID if available
 	if userID, exists := c.Get("userID"); exists {
 		key += fmt.Sprintf(":user:%v", userID)
 	}
-	
+
 	// Create MD5 hash of the key for consistent length
 	hash := md5.Sum([]byte(key))
 	return fmt.Sprintf("cache:%x", hash)
@@ -82,7 +82,7 @@ func (cs *CacheService) Set(ctx context.Context, key string, value interface{}, 
 		if err == nil {
 			return nil
 		}
-		
+
 		// Log Redis error but continue with memory cache
 		logger := logging.GetLogger()
 		logger.Warn("Redis cache set failed, falling back to memory cache",
@@ -124,7 +124,7 @@ func (cs *CacheService) Get(ctx context.Context, key string) (interface{}, bool)
 	// Fallback to memory cache
 	cs.mutex.RLock()
 	defer cs.mutex.RUnlock()
-	
+
 	if entry, exists := cs.memoryCache[key]; exists {
 		// Check if entry is still valid
 		if time.Since(entry.Timestamp) < entry.TTL {
@@ -206,7 +206,7 @@ func CacheMiddleware(cacheService *CacheService, ttl time.Duration) gin.HandlerF
 		}
 
 		key := cacheService.generateKey(c)
-		
+
 		// Try to get from cache
 		if cached, found := cacheService.Get(c.Request.Context(), key); found {
 			logger := logging.GetLoggerFromContext(c)
@@ -229,7 +229,7 @@ func CacheMiddleware(cacheService *CacheService, ttl time.Duration) gin.HandlerF
 
 		// Store original response writer
 		originalWriter := c.Writer
-		
+
 		// Create a custom response writer to capture the response
 		responseWriter := &responseCapture{
 			ResponseWriter: originalWriter,
@@ -293,8 +293,8 @@ func (cs *CacheService) GetStats() map[string]interface{} {
 	defer cs.mutex.RUnlock()
 
 	return map[string]interface{}{
-		"enabled":       cs.enabled,
+		"enabled":        cs.enabled,
 		"memory_entries": len(cs.memoryCache),
 		"redis_enabled":  cs.redisClient != nil,
 	}
-} 
+}

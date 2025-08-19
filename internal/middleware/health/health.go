@@ -187,8 +187,8 @@ func handleHealthCheck(c *gin.Context, healthService *HealthService) {
 	overallHealthy := healthService.IsHealthy(ctx)
 
 	response := gin.H{
-		"status":    "healthy",
-		"timestamp": time.Now(),
+		"status":     "healthy",
+		"timestamp":  time.Now(),
 		"components": results,
 	}
 
@@ -231,7 +231,7 @@ func handleLivenessCheck(c *gin.Context) {
 // LogHealthStatus logs health check results
 func LogHealthStatus(results map[string]HealthStatus) {
 	logger := logging.GetLogger()
-	
+
 	for component, status := range results {
 		fields := []zap.Field{
 			zap.String("component", component),
@@ -249,4 +249,4 @@ func LogHealthStatus(results map[string]HealthStatus) {
 			logger.Error("Health check failed", fields...)
 		}
 	}
-} 
+}

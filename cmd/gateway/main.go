@@ -167,7 +167,7 @@ func main() {
 			"description": "High-performance API Gateway with rate limiting, caching, and health monitoring",
 			"endpoints": gin.H{
 				"health": gin.H{
-					"GET /health":      "Complete health status",
+					"GET /health":       "Complete health status",
 					"GET /health/ready": "Readiness check",
 					"GET /health/live":  "Liveness check",
 				},
@@ -175,12 +175,12 @@ func main() {
 					"POST /login": "User authentication",
 				},
 				"admin": gin.H{
-					"GET  /admin/routes":                    "List all routes",
-					"POST /admin/routes":                    "Create new route",
-					"PUT  /admin/routes/:id":                "Update route",
-					"DELETE /admin/routes/:id":              "Delete route",
-					"GET  /admin/routes/stats":              "Route statistics",
-					"GET  /admin/routes/optimizer/stats":    "Optimizer statistics",
+					"GET  /admin/routes":                     "List all routes",
+					"POST /admin/routes":                     "Create new route",
+					"PUT  /admin/routes/:id":                 "Update route",
+					"DELETE /admin/routes/:id":               "Delete route",
+					"GET  /admin/routes/stats":               "Route statistics",
+					"GET  /admin/routes/optimizer/stats":     "Optimizer statistics",
 					"POST /admin/routes/optimizer/benchmark": "Performance benchmark",
 				},
 				"proxy": gin.H{

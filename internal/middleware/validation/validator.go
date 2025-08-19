@@ -20,9 +20,9 @@ type ValidationError struct {
 
 // ValidationResult represents validation result
 type ValidationResult struct {
-	Valid   bool             `json:"valid"`
+	Valid   bool              `json:"valid"`
 	Errors  []ValidationError `json:"errors,omitempty"`
-	Message string           `json:"message,omitempty"`
+	Message string            `json:"message,omitempty"`
 }
 
 // Validator interface for validation
@@ -144,14 +144,14 @@ func (vs *ValidationService) Validate(fields map[string]string) ValidationResult
 func SanitizeString(input string) string {
 	// Remove null bytes
 	input = strings.ReplaceAll(input, "\x00", "")
-	
+
 	// Trim whitespace
 	input = strings.TrimSpace(input)
-	
+
 	// Remove control characters except newline and tab
 	re := regexp.MustCompile(`[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]`)
 	input = re.ReplaceAllString(input, "")
-	
+
 	return input
 }
 
@@ -288,4 +288,4 @@ func CreateCommonValidationService() *ValidationService {
 		service.AddRule(field, validators...)
 	}
 	return service
-} 
+}
