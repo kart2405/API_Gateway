@@ -168,6 +168,48 @@ func TestModerationMiddleware_UnsafeContent(t *testing.T) {
 			},
 			description: "Nested JSON with unsafe content",
 		},
+		{
+			name: "unsafe_promotional_spam",
+			requestBody: map[string]interface{}{
+				"title":   "Amazing Deal!",
+				"content": "Buy now and get rich quick! Limited time offer!",
+			},
+			description: "Promotional spam with buy now and get rich quick",
+		},
+		{
+			name: "unsafe_phishing_content",
+			requestBody: map[string]interface{}{
+				"message": "Your account is suspended! Click to verify your account immediately!",
+				"urgent":  true,
+			},
+			description: "Phishing content with account verification scam",
+		},
+		{
+			name:        "unsafe_crypto_spam",
+			requestBody: "Amazing crypto investment opportunity! Bitcoin trading bot guaranteed income!",
+			description: "Cryptocurrency spam with trading bot",
+		},
+		{
+			name: "unsafe_social_media_spam",
+			requestBody: map[string]interface{}{
+				"post": "Follow me on Instagram! Link in bio! Like and subscribe!",
+				"user": "influencer_spam",
+			},
+			description: "Social media spam content",
+		},
+		{
+			name: "unsafe_medical_spam",
+			requestBody: map[string]interface{}{
+				"product": "Miracle weight loss pills",
+				"claim":   "Doctor recommended health supplement for instant results!",
+			},
+			description: "Medical spam with miracle cure claims",
+		},
+		{
+			name:        "unsafe_tech_support_scam",
+			requestBody: "Virus detected on your computer! Call Microsoft support now!",
+			description: "Tech support scam content",
+		},
 	}
 
 	for _, tc := range testCases {
@@ -436,6 +478,30 @@ func TestModerationMiddleware_Integration(t *testing.T) {
 			},
 			expectedStatus: 403,
 			description:    "Unsafe blog post should be blocked",
+		},
+		{
+			name:     "unsafe_promotional_blog_post",
+			endpoint: "/api/posts",
+			requestBody: map[string]interface{}{
+				"title":   "Amazing Deal - Act Fast!",
+				"content": "Buy now and make money fast! Limited time offer expires soon!",
+				"author":  "promoter",
+				"tags":    []string{"deal", "money"},
+			},
+			expectedStatus: 403,
+			description:    "Promotional spam blog post should be blocked",
+		},
+		{
+			name:     "unsafe_crypto_blog_post",
+			endpoint: "/api/posts",
+			requestBody: map[string]interface{}{
+				"title":   "Bitcoin Investment Opportunity",
+				"content": "Guaranteed income with our crypto trading bot! Financial freedom awaits!",
+				"author":  "crypto_spammer",
+				"tags":    []string{"bitcoin", "investment"},
+			},
+			expectedStatus: 403,
+			description:    "Cryptocurrency spam should be blocked",
 		},
 		{
 			name:     "safe_comment",
