@@ -163,10 +163,65 @@ func callModerationService(content string) (bool, error) {
 // isContentSafe performs basic content safety checks on plain text
 // This is a placeholder implementation for demonstration
 func isContentSafe(content string) bool {
-	// List of prohibited terms (in a real implementation, this would be more sophisticated)
+	// Comprehensive list of prohibited terms for spam and harmful content detection
 	prohibitedTerms := []string{
-		"spam", "hate", "violence", "abuse",
-		// Add more terms as needed
+		// Basic spam terms
+		"spam", "spammer", "spamming",
+
+		// Promotional/commercial spam
+		"buy now", "click here", "limited time", "act now", "urgent", "hurry",
+		"free money", "make money fast", "get rich quick", "work from home",
+		"guaranteed income", "no experience needed", "easy money",
+		"discount", "sale", "offer expires", "special deal", "lowest price",
+		"casino", "gambling", "lottery", "winner", "congratulations you won",
+
+		// Phishing and scam terms
+		"verify account", "update payment", "suspended account", "click to verify",
+		"confirm identity", "security alert", "account locked", "immediate action",
+		"wire transfer", "western union", "money gram", "bitcoin payment",
+		"inheritance", "lottery winner", "beneficiary", "transfer funds",
+		"nigerian prince", "unclaimed money", "tax refund",
+
+		// Adult/inappropriate content
+		"adult content", "xxx", "porn", "sexual", "dating site", "hookup",
+		"viagra", "cialis", "enhancement", "enlargement",
+
+		// Repetitive/low quality content
+		"lorem ipsum", "test test test", "aaaaaa", "click click click",
+		"like and subscribe", "follow for follow", "f4f", "l4l",
+
+		// Hate speech and harassment
+		"hate", "violence", "abuse", "kill", "die", "stupid", "idiot",
+		"harassment", "bully", "threat", "revenge", "destroy",
+
+		// Misinformation indicators
+		"fake news", "conspiracy", "hoax", "scam", "fraud", "cheat",
+		"illegal", "stolen", "hacked", "cracked", "pirated",
+
+		// Social media spam
+		"follow me", "check my profile", "link in bio", "dm me",
+		"add me", "friend request", "social media", "instagram",
+		"facebook", "twitter", "tiktok", "youtube channel",
+
+		// Cryptocurrency spam
+		"crypto", "bitcoin", "ethereum", "nft", "trading bot", "pump",
+		"investment opportunity", "trading signals", "forex",
+
+		// MLM and pyramid schemes
+		"mlm", "network marketing", "pyramid", "downline", "upline",
+		"residual income", "passive income", "financial freedom",
+
+		// Medical spam
+		"weight loss", "diet pills", "miracle cure", "health supplement",
+		"medical breakthrough", "doctor recommended",
+
+		// Tech support scams
+		"tech support", "virus detected", "computer infected", "call now",
+		"microsoft support", "apple support", "google support",
+
+		// Generic spam patterns
+		"act fast", "limited offer", "exclusive deal", "one time only",
+		"don't miss out", "last chance", "expires soon", "while supplies last",
 	}
 
 	contentLower := strings.ToLower(content)
