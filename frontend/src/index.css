@@ -1,0 +1,236 @@
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #f5f5f5;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Smooth transitions */
+* {
+  transition: all 0.2s ease-in-out;
+}
+
+/* Custom animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Utility classes */
+.fade-in-up {
+  animation: fadeInUp 0.5s ease-out;
+}
+
+.slide-in-right {
+  animation: slideInRight 0.5s ease-out;
+}
+
+.pulse {
+  animation: pulse 2s infinite;
+}
+
+/* Custom focus styles */
+button:focus,
+input:focus,
+textarea:focus,
+select:focus {
+  outline: 2px solid #1976d2;
+  outline-offset: 2px;
+}
+
+/* Card hover effects */
+.MuiCard-root:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Button hover effects */
+.MuiButton-root:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Custom chip styles */
+.MuiChip-root {
+  font-weight: 500;
+}
+
+/* Custom accordion styles */
+.MuiAccordion-root {
+  border-radius: 8px !important;
+  overflow: hidden;
+}
+
+.MuiAccordionSummary-root {
+  min-height: 64px !important;
+}
+
+/* Custom form styles */
+.MuiTextField-root .MuiOutlinedInput-root {
+  border-radius: 8px;
+}
+
+.MuiTextField-root .MuiOutlinedInput-root:hover {
+  border-color: #1976d2;
+}
+
+/* Custom switch styles */
+.MuiSwitch-root .MuiSwitch-switchBase.Mui-checked {
+  color: #1976d2;
+}
+
+.MuiSwitch-root .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track {
+  background-color: #1976d2;
+}
+
+/* Custom select styles */
+.MuiSelect-select {
+  border-radius: 8px !important;
+}
+
+/* Custom progress bar styles */
+.MuiLinearProgress-root {
+  border-radius: 4px;
+  height: 8px;
+}
+
+/* Custom list styles */
+.MuiListItem-root {
+  border-radius: 8px;
+  margin-bottom: 4px;
+}
+
+.MuiListItem-root:hover {
+  background-color: rgba(25, 118, 210, 0.04);
+}
+
+/* Custom paper styles */
+.MuiPaper-root {
+  border-radius: 12px;
+}
+
+/* Custom alert styles */
+.MuiAlert-root {
+  border-radius: 8px;
+}
+
+/* Custom snackbar styles */
+.MuiSnackbar-root .MuiAlert-root {
+  border-radius: 8px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+  .MuiContainer-root {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+  
+  .MuiCard-root {
+    margin-bottom: 16px;
+  }
+  
+  .MuiTypography-h4 {
+    font-size: 1.75rem !important;
+  }
+  
+  .MuiTypography-h6 {
+    font-size: 1.1rem !important;
+  }
+}
+
+/* Dark mode adjustments */
+[data-mui-color-scheme="dark"] {
+  background-color: #121212;
+}
+
+[data-mui-color-scheme="dark"] .MuiPaper-root {
+  background-color: #1e1e1e;
+}
+
+[data-mui-color-scheme="dark"] .MuiCard-root {
+  background-color: #2d2d2d;
+}
+
+/* Custom theme colors */
+.theme-modern {
+  --primary-color: #1976d2;
+  --secondary-color: #dc004e;
+  --accent-color: #ff9800;
+}
+
+.theme-colorful {
+  --primary-color: #9c27b0;
+  --secondary-color: #f50057;
+  --accent-color: #00bcd4;
+}
+
+.theme-dark {
+  --primary-color: #bb86fc;
+  --secondary-color: #03dac6;
+  --accent-color: #ff6b6b;
+}
+
+.theme-light {
+  --primary-color: #1976d2;
+  --secondary-color: #dc004e;
+  --accent-color: #ff9800;
+}
