@@ -139,8 +139,17 @@ func main() {
 
 	// Demo endpoint to show middleware functionality
 	r.GET("/demo", func(c *gin.Context) {
-		c.HTML(200, "demo.html", gin.H{
-			"title": "Moderation Middleware Demo",
+		c.JSON(200, gin.H{
+			"title":       "Moderation Middleware Demo",
+			"description": "This endpoint demonstrates the moderation middleware functionality",
+			"endpoints": []string{
+				"POST /public/feedback - Public feedback (no auth, no moderation)",
+				"POST /api/posts - Create post (auth + moderation required)",
+				"POST /api/comments - Create comment (auth + moderation required)",
+				"PUT /api/profile - Update profile (auth + moderation required)",
+				"GET /api/posts - List posts (auth required, no moderation)",
+				"GET /api/profile - Get profile (auth required, no moderation)",
+			},
 		})
 	})
 
@@ -221,42 +230,6 @@ func runDemoRequests() {
 			},
 			needsAuth:   true,
 			expectedMsg: "Should be blocked - contains spam",
-		},
-		{
-			name:     "Unsafe promotional spam",
-			method:   "POST",
-			endpoint: "/api/posts",
-			body: map[string]interface{}{
-				"title":   "Amazing Deal - Act Now!",
-				"content": "Buy now and get rich quick! Limited time offer expires soon!",
-				"tags":    []string{"promotion"},
-			},
-			needsAuth:   true,
-			expectedMsg: "Should be blocked - promotional spam detected",
-		},
-		{
-			name:     "Unsafe crypto spam",
-			method:   "POST",
-			endpoint: "/api/posts",
-			body: map[string]interface{}{
-				"title":   "Bitcoin Investment",
-				"content": "Guaranteed income with crypto trading bot! Financial freedom awaits!",
-				"tags":    []string{"crypto"},
-			},
-			needsAuth:   true,
-			expectedMsg: "Should be blocked - cryptocurrency spam",
-		},
-		{
-			name:     "Unsafe phishing attempt",
-			method:   "POST",
-			endpoint: "/api/posts",
-			body: map[string]interface{}{
-				"title":   "Account Alert",
-				"content": "Your account is suspended! Click to verify your account now!",
-				"tags":    []string{"urgent"},
-			},
-			needsAuth:   true,
-			expectedMsg: "Should be blocked - phishing content detected",
 		},
 		{
 			name:     "Safe comment",
@@ -356,13 +329,6 @@ func runDemoRequests() {
 	fmt.Println("💡 Key observations:")
 	fmt.Println("   - Safe content passes through and reaches the handlers")
 	fmt.Println("   - Unsafe content is blocked with 403 Forbidden status")
-	fmt.Println("   - Comprehensive spam detection including:")
-	fmt.Println("     • Promotional spam (buy now, get rich quick, etc.)")
-	fmt.Println("     • Phishing attempts (account verification, security alerts)")
-	fmt.Println("     • Cryptocurrency spam (trading bots, investment schemes)")
-	fmt.Println("     • Social media spam (follow me, link in bio)")
-	fmt.Println("     • Medical spam (miracle cures, weight loss)")
-	fmt.Println("     • Tech support scams (virus detected, call now)")
 	fmt.Println("   - GET requests bypass moderation entirely")
 	fmt.Println("   - Request bodies are preserved for downstream handlers")
 	fmt.Println("   - The middleware integrates seamlessly with existing auth middleware")
