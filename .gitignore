@@ -85,4 +85,4 @@ backend/backend1
 backend2/backend2
 
 # Air live reload
-tmp/ 
+tmp/ api_gateway
