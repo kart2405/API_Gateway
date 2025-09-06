@@ -28,6 +28,8 @@ security:
     - "*"
     - "http://localhost:3000"
     - "http://localhost:8080"
+    - "https://api-gateway.vercel.app"
+    - "https://api-gateway-frontend.vercel.app"
 
 logging:
   level: "info"
